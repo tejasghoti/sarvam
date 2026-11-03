@@ -24,6 +24,14 @@ from sarvamai import SarvamAI
 api_key = os.environ.get("SARVAM_API_KEY", "")
 client = SarvamAI(api_subscription_key=api_key) if api_key else None
 
+def get_client():
+    global client
+    if client is None:
+        key = os.environ.get("SARVAM_API_KEY", "")
+        if key:
+            client = SarvamAI(api_subscription_key=key)
+    return client
+
 app = FastAPI(title="Sarvam AI Avatar Tutor - Showcase Edition", description="Enterprise-grade Multilingual AI Avatar Tutor")
 
 app.add_middleware(
@@ -103,7 +111,8 @@ Important Rules:
 
 @app.post("/api/chat")
 async def chat_endpoint(req: ChatRequest):
-    if not client:
+    s_client = get_client()
+    if not s_client:
         raise HTTPException(status_code=500, detail="SARVAM_API_KEY is not configured.")
 
     messages = [{"role": "system", "content": TUTOR_SYSTEM_PROMPT}]
@@ -126,7 +135,7 @@ async def chat_endpoint(req: ChatRequest):
     messages.append({"role": "user", "content": user_prompt})
 
     try:
-        completion = client.chat.completions(
+        completion = s_client.chat.completions(
             model="sarvam-105b-conversations",
             messages=messages,
             response_format={"type": "json_object"},
@@ -176,7 +185,7 @@ async def chat_endpoint(req: ChatRequest):
         clean_speech = data.get("spoken_explanation", "Hello!")
         clean_speech = clean_speech.replace("*", "").replace("#", "").replace("`", "")
 
-        tts_res = client.text_to_speech.convert(
+        tts_res = s_client.text_to_speech.convert(
             text=clean_speech,
             language_code=target_lang,
             speaker=valid_speaker,
@@ -193,11 +202,12 @@ async def chat_endpoint(req: ChatRequest):
 
 @app.post("/api/tts")
 async def tts_endpoint(req: TTSRequest):
-    if not client:
+    s_client = get_client()
+    if not s_client:
         raise HTTPException(status_code=500, detail="SARVAM_API_KEY is not configured.")
     try:
         valid_speaker = req.speaker if req.speaker in VALID_SPEAKERS else 'aditya'
-        tts_res = client.text_to_speech.convert(
+        tts_res = s_client.text_to_speech.convert(
             text=req.text,
             language_code=req.language_code,
             speaker=valid_speaker,
@@ -212,11 +222,12 @@ async def tts_endpoint(req: TTSRequest):
 
 @app.get("/api/test-voice")
 async def test_voice(speaker: str = "aditya", language_code: str = "en-IN"):
-    if not client:
+    s_client = get_client()
+    if not s_client:
         raise HTTPException(status_code=500, detail="SARVAM_API_KEY is not configured.")
     try:
         valid_speaker = speaker if speaker in VALID_SPEAKERS else 'aditya'
-        tts_res = client.text_to_speech.convert(
+        tts_res = s_client.text_to_speech.convert(
             text="Namaste! I am Guru AI, your personal Sarvam tutor. My voice is crystal clear and ready to teach!",
             language_code=language_code if language_code in ["hi-IN", "ta-IN", "te-IN", "kn-IN", "mr-IN", "bn-IN", "gu-IN", "pa-IN", "od-IN"] else "en-IN",
             speaker=valid_speaker,
@@ -231,7 +242,8 @@ async def test_voice(speaker: str = "aditya", language_code: str = "en-IN"):
 
 @app.post("/api/stt")
 async def stt_endpoint(req: STTRequest):
-    if not client:
+    s_client = get_client()
+    if not s_client:
         raise HTTPException(status_code=500, detail="SARVAM_API_KEY is not configured.")
     try:
         raw_bytes = base64.b64decode(req.audio_base64)
@@ -250,7 +262,7 @@ async def stt_endpoint(req: STTRequest):
 
         try:
             with open(tmp_path, "rb") as f:
-                stt_res = client.speech_to_text.transcribe(
+                stt_res = s_client.speech_to_text.transcribe(
                     file=f,
                     model="saaras:v3",
                     language_code=req.language_code
@@ -266,7 +278,8 @@ async def stt_endpoint(req: STTRequest):
 
 @app.post("/api/summary")
 async def generate_summary(history: List[ChatMessage]):
-    if not client:
+    s_client = get_client()
+    if not s_client:
         raise HTTPException(status_code=500, detail="SARVAM_API_KEY is not configured.")
     
     prompt = "Review this tutoring lesson dialogue and generate a concise, beautiful Markdown Revision Sheet with 1) Key Concepts Mastered, 2) Core Formulas / Laws, and 3) Next Steps for Practice:\n\n"
@@ -274,7 +287,7 @@ async def generate_summary(history: List[ChatMessage]):
         prompt += f"{msg.role.upper()}: {msg.content}\n"
 
     try:
-        completion = client.chat.completions(
+        completion = s_client.chat.completions(
             model="sarvam-105b-conversations",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.4,
@@ -296,7 +309,10 @@ async def health_check():
     }
 
 # Mount static directory for frontend
-static_dir = os.path.join(os.path.dirname(__file__), "static")
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(current_file_dir, "static")
+if not os.path.exists(static_dir):
+    static_dir = os.path.join(os.path.dirname(current_file_dir), "static")
 os.makedirs(static_dir, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
