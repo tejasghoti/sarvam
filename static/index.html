@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sarvam AI Avatar Tutor | Guru AI</title>
+  <title>Guru AI — Sarvam AI Avatar Tutor</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Mermaid.js for Diagrams -->
@@ -12,9 +12,11 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <!-- Canvas Confetti for Celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
   <script>
@@ -28,12 +30,13 @@
           },
           colors: {
             stitch: {
-              surface: '#0d1322',
-              card: '#121a2d',
-              border: '#1f2b45',
+              bg: '#070a13',
+              card: '#0f172a',
+              border: '#1e293b',
               accent: '#6366f1',
               neon: '#10b981',
-              warning: '#f59e0b'
+              amber: '#f59e0b',
+              rose: '#f43f5e'
             }
           }
         }
@@ -41,29 +44,37 @@
     }
   </script>
 </head>
-<body class="bg-[#080c15] text-slate-100 min-h-screen flex flex-col font-sans antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+<body class="bg-[#070a13] text-slate-100 min-h-screen flex flex-col font-sans antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white">
 
-  <!-- Stitch Header Navigation -->
-  <header class="border-b border-[#1b253d] bg-[#0d1424]/90 backdrop-blur-xl sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between shadow-lg">
+  <!-- TOP APP BAR -->
+  <header class="border-b border-[#182238] bg-[#0c1222]/90 backdrop-blur-xl sticky top-0 z-50 px-5 lg:px-8 py-3.5 flex items-center justify-between shadow-xl">
+    <!-- Brand Info -->
     <div class="flex items-center gap-3.5">
-      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-emerald-400 p-[1.5px] shadow-lg shadow-indigo-500/25">
-        <div class="w-full h-full bg-[#0d1424] rounded-[14px] flex items-center justify-center">
-          <span class="text-xl">🎓</span>
+      <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-emerald-400 p-[1.5px] shadow-lg shadow-indigo-500/30">
+        <div class="w-full h-full bg-[#0c1222] rounded-[14px] flex items-center justify-center">
+          <span class="text-2xl">🎓</span>
         </div>
       </div>
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-extrabold text-base tracking-tight bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">Guru AI Tutor</h1>
-          <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">Sarvam Stack</span>
+          <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">Sarvam Stack</span>
         </div>
-        <p class="text-[11px] text-slate-400">Multilingual Avatar Tutor • Bulbul TTS • Saaras STT • 105B Brain</p>
+        <p class="text-[11px] text-slate-400">Multilingual Avatar Tutor • Bulbul v3 TTS • Saaras v3 STT • 105B Brain</p>
       </div>
     </div>
 
-    <!-- Right Controls: Language, Voice Speaker, Test Voice, Mastery Score -->
+    <!-- Header Actions & Controls -->
     <div class="flex items-center gap-2.5 flex-wrap">
-      <!-- Language Dropdown -->
-      <div class="flex items-center gap-1.5 bg-[#131c30] border border-[#202d49] px-3 py-1.5 rounded-xl text-xs">
+      
+      <!-- Hands-free Call Mode Toggle -->
+      <button id="callModeBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#141e34] border border-[#223354] hover:border-emerald-500/60 text-xs font-semibold transition shadow-sm" title="Hands-free auto turn-taking voice call">
+        <span class="w-2.5 h-2.5 rounded-full bg-slate-500" id="callModeIndicator"></span>
+        <span id="callModeText" class="text-slate-300">Call Mode: Off</span>
+      </button>
+
+      <!-- Language Select -->
+      <div class="flex items-center gap-1.5 bg-[#141e34] border border-[#223354] px-3 py-1.5 rounded-xl text-xs">
         <span class="text-slate-400">🌐</span>
         <select id="languageSelect" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer">
           <option value="en-IN" selected>English (India)</option>
@@ -77,8 +88,8 @@
         </select>
       </div>
 
-      <!-- Voice Speaker Dropdown -->
-      <div class="flex items-center gap-1.5 bg-[#131c30] border border-[#202d49] px-3 py-1.5 rounded-xl text-xs">
+      <!-- Speaker Select -->
+      <div class="flex items-center gap-1.5 bg-[#141e34] border border-[#223354] px-3 py-1.5 rounded-xl text-xs">
         <span class="text-slate-400">🗣️</span>
         <select id="speakerSelect" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer">
           <option value="aditya" selected>Aditya (Male Tutor)</option>
@@ -91,13 +102,13 @@
       </div>
 
       <!-- Test Voice Button -->
-      <button id="testVoiceBtn" class="flex items-center gap-1.5 bg-indigo-600/20 hover:bg-indigo-600/35 border border-indigo-500/40 text-indigo-300 px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 shadow-sm" title="Click to test Bulbul voice playback">
+      <button id="testVoiceBtn" class="flex items-center gap-1.5 bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-500/50 text-indigo-300 px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 shadow-sm" title="Click to test Bulbul voice synthesis">
         <span id="testVoiceIcon">🔊</span>
         <span>Test Voice</span>
       </button>
 
-      <!-- Live Comprehension Mastery Pill -->
-      <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
+      <!-- Mastery Pill -->
+      <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3.5 py-1.5 rounded-xl">
         <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
         <span class="text-[11px] text-slate-300 font-medium">Mastery:</span>
         <span id="masteryDisplay" class="text-xs font-bold text-emerald-400">15%</span>
@@ -105,37 +116,42 @@
     </div>
   </header>
 
-  <!-- Main Grid Workspace -->
-  <main class="flex-1 max-w-[1700px] w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-[1750px] w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-    <!-- LEFT COLUMN: AI Avatar Stage & Socratic Chat (5 cols) -->
+    <!-- LEFT COLUMN: AI Avatar Stage & Socratic Dialogue (5 cols) -->
     <section class="lg:col-span-5 flex flex-col gap-4">
 
-      <!-- AVATAR STAGE CARD (Glassmorphism Stitch Style) -->
-      <div class="bg-[#101728]/90 border border-[#1d2a45] rounded-3xl p-5 shadow-2xl relative overflow-hidden flex flex-col items-center backdrop-blur-xl">
+      <!-- AVATAR STAGE (Interactive Card) -->
+      <div class="bg-[#0e1526]/90 border border-[#1b2742] rounded-3xl p-5 shadow-2xl relative overflow-hidden flex flex-col items-center backdrop-blur-xl">
         <!-- Ambient Radial Glows -->
         <div class="absolute -top-16 -left-16 w-52 h-52 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-16 -right-16 w-52 h-52 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
-        <!-- Top Avatar Status Bar -->
-        <div class="w-full flex items-center justify-between mb-1 z-10">
-          <div class="flex items-center gap-2 bg-[#141e34] border border-[#223150] px-3 py-1 rounded-full">
+        <!-- Top Avatar Badge & Actions -->
+        <div class="w-full flex items-center justify-between mb-2 z-10">
+          <div class="flex items-center gap-2 bg-[#131c30] border border-[#212f4d] px-3 py-1 rounded-full">
             <span id="avatarStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400"></span>
             <span id="avatarStatusText" class="text-xs font-semibold text-emerald-400">Ready to Teach</span>
           </div>
 
           <div class="flex items-center gap-2">
-            <button id="replayVoiceBtn" class="text-xs px-2.5 py-1 rounded-lg bg-[#16223a] border border-[#243557] hover:border-indigo-500/50 text-indigo-300 font-medium transition flex items-center gap-1 shadow-sm" title="Replay the last tutor explanation">
+            <!-- Mood Badge -->
+            <span id="avatarMoodBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-medium">
+              ✨ Explaining
+            </span>
+            <!-- Replay Voice Button -->
+            <button id="replayVoiceBtn" class="text-xs px-2.5 py-1 rounded-xl bg-[#141f35] border border-[#233352] hover:border-indigo-500/50 text-indigo-300 font-medium transition flex items-center gap-1 shadow-sm active:scale-95" title="Replay tutor audio">
               <span>🔄</span> Replay
             </button>
           </div>
         </div>
 
-        <!-- LIFELIKE ANIMATED SVG AVATAR -->
+        <!-- ANIMATED AVATAR SVG -->
         <div class="relative w-52 h-52 flex items-center justify-center my-1 select-none">
           <!-- Animated Aura Rings -->
-          <div id="avatarHalo" class="absolute inset-0 rounded-full border-2 border-indigo-500/20 scale-95 transition-all duration-300"></div>
-          <div id="avatarHaloOuter" class="absolute -inset-3 rounded-full border border-purple-500/10 scale-95 transition-all duration-500"></div>
+          <div id="avatarHalo" class="absolute inset-0 rounded-full border-2 border-indigo-500/25 scale-95 transition-all duration-300"></div>
+          <div id="avatarHaloOuter" class="absolute -inset-3 rounded-full border border-purple-500/15 scale-95 transition-all duration-500"></div>
 
           <!-- Avatar Character Canvas/SVG -->
           <svg id="avatarSvg" class="w-48 h-48 drop-shadow-2xl transition-transform duration-300" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -172,7 +188,7 @@
             <path id="leftBrow" d="M72 68 Q82 65 90 70" stroke="#1e1b4b" stroke-width="3" stroke-linecap="round" fill="none" class="transition-all duration-300" />
             <path id="rightBrow" d="M110 70 Q118 65 128 68" stroke="#1e1b4b" stroke-width="3" stroke-linecap="round" fill="none" class="transition-all duration-300" />
 
-            <!-- Eyes (Blinking Group) -->
+            <!-- Eyes (Blinking & Gaze Tracking) -->
             <g id="eyesGroup">
               <ellipse id="leftEye" cx="80" cy="82" rx="6" ry="6" fill="#1e1b4b" />
               <circle cx="82" cy="80" r="2" fill="#ffffff" />
@@ -185,12 +201,12 @@
             <rect x="108" y="73" width="24" height="18" rx="6" stroke="#0ea5e9" stroke-width="2.5" fill="none" stroke-opacity="0.85" />
             <path d="M92 80 L108 80" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round" />
 
-            <!-- Mouth (Lip-sync dynamic path) -->
+            <!-- Dynamic Lip-Sync Mouth -->
             <path id="avatarMouth" d="M88 110 Q100 118 112 110" stroke="#881337" stroke-width="3.5" stroke-linecap="round" fill="none" class="transition-all duration-150" />
           </svg>
         </div>
 
-        <!-- Expressive Soundwave Visualizer Bars -->
+        <!-- Soundwave Visualizer Bars -->
         <div id="soundWave" class="flex items-center gap-1.5 h-6 my-1 opacity-40 transition-opacity duration-300">
           <div class="wave-bar h-2 w-1 bg-indigo-400 rounded-full"></div>
           <div class="wave-bar h-4 w-1 bg-purple-400 rounded-full"></div>
@@ -200,36 +216,36 @@
           <div class="wave-bar h-2 w-1 bg-indigo-400 rounded-full"></div>
         </div>
 
-        <!-- Hidden Audio Player for Sarvam Bulbul TTS -->
+        <!-- Hidden Audio Player -->
         <audio id="tutorAudio" class="hidden"></audio>
 
-        <!-- Current Spoken Transcript Caption Box -->
-        <div class="w-full bg-[#141e33] border border-[#223150] rounded-2xl p-3 mt-1.5 text-center">
+        <!-- Current Spoken Caption Box -->
+        <div class="w-full bg-[#131c30] border border-[#202e4c] rounded-2xl p-3 mt-1 text-center">
           <p id="tutorSpokenBubble" class="text-xs text-indigo-100 font-medium leading-relaxed italic">
-            "Namaste! I am your Sarvam AI Tutor. Click the microphone below or ask any question to start our interactive session!"
+            "Namaste! I am your Sarvam AI Tutor. Click the microphone or pick a topic to start our interactive session!"
           </p>
         </div>
       </div>
 
-      <!-- TOPIC CHIPS & QUICK STARTERS -->
+      <!-- TOPIC CHIPS -->
       <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
-        <span class="text-slate-400 font-semibold uppercase tracking-wider text-[10px] whitespace-nowrap">Topics:</span>
+        <span class="text-slate-400 font-semibold uppercase tracking-wider text-[10px] whitespace-nowrap">Explore:</span>
         <button class="topic-chip active px-3 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-500/50 text-indigo-200 hover:bg-indigo-600/50 transition whitespace-nowrap" data-topic="Photosynthesis">🌱 Photosynthesis</button>
-        <button class="topic-chip px-3 py-1.5 rounded-xl bg-[#131c30] border border-[#202d49] text-slate-300 hover:border-indigo-500/40 transition whitespace-nowrap" data-topic="Quantum Computing">⚛️ Quantum Computing</button>
-        <button class="topic-chip px-3 py-1.5 rounded-xl bg-[#131c30] border border-[#202d49] text-slate-300 hover:border-indigo-500/40 transition whitespace-nowrap" data-topic="Neural Networks">🧠 Neural Networks</button>
-        <button class="topic-chip px-3 py-1.5 rounded-xl bg-[#131c30] border border-[#202d49] text-slate-300 hover:border-indigo-500/40 transition whitespace-nowrap" data-topic="Calculus: Derivatives">📐 Derivatives</button>
+        <button class="topic-chip px-3 py-1.5 rounded-xl bg-[#121a2d] border border-[#1f2c48] text-slate-300 hover:border-indigo-500/40 transition whitespace-nowrap" data-topic="Quantum Computing">⚛️ Quantum Computing</button>
+        <button class="topic-chip px-3 py-1.5 rounded-xl bg-[#121a2d] border border-[#1f2c48] text-slate-300 hover:border-indigo-500/40 transition whitespace-nowrap" data-topic="Neural Networks">🧠 Neural Networks</button>
+        <button class="topic-chip px-3 py-1.5 rounded-xl bg-[#121a2d] border border-[#1f2c48] text-slate-300 hover:border-indigo-500/40 transition whitespace-nowrap" data-topic="Calculus: Derivatives">📐 Derivatives</button>
       </div>
 
       <!-- CHAT & ADAPTIVE SESSIONS -->
-      <div class="bg-[#101728]/90 border border-[#1d2a45] rounded-3xl p-4 flex-1 flex flex-col justify-between shadow-xl min-h-[340px] backdrop-blur-xl">
+      <div class="bg-[#0e1526]/90 border border-[#1b2742] rounded-3xl p-4 flex-1 flex flex-col justify-between shadow-xl min-h-[350px] backdrop-blur-xl">
         
         <!-- Conversation Feed -->
         <div id="chatFeed" class="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[290px]">
-          <!-- Welcome Message -->
+          <!-- Welcome Bubble -->
           <div class="flex items-start gap-2.5">
             <div class="w-7 h-7 rounded-xl bg-indigo-600 flex items-center justify-center text-xs shrink-0 font-bold shadow-md shadow-indigo-600/30">G</div>
-            <div class="bg-[#152036] border border-[#233354] rounded-2xl rounded-tl-sm p-3 text-xs text-slate-200 leading-relaxed max-w-[88%] shadow-sm">
-              Welcome! You can speak using the microphone button or type below. I will explain concepts visually on the whiteboard and test your mastery.
+            <div class="bg-[#141e33] border border-[#223150] rounded-2xl rounded-tl-sm p-3 text-xs text-slate-200 leading-relaxed max-w-[88%] shadow-sm">
+              Welcome! You can speak using the microphone button or type below. I'll explain concepts verbally, sketch real-time diagrams on the whiteboard, and test your understanding.
             </div>
           </div>
         </div>
@@ -245,7 +261,7 @@
           <div id="adaptiveFeedback" class="hidden text-xs mt-2 font-medium"></div>
         </div>
 
-        <!-- Voice Recording Banner (Shown while recording mic) -->
+        <!-- Voice Recording Banner (When microphone is recording) -->
         <div id="voiceRecordingBanner" class="hidden mt-2 p-2.5 bg-red-500/15 border border-red-500/40 rounded-xl flex items-center justify-between animate-pulse">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
@@ -255,16 +271,16 @@
         </div>
 
         <!-- Chat Input Form -->
-        <form id="chatForm" class="mt-3 pt-3 border-t border-[#1d2a45] flex items-center gap-2">
+        <form id="chatForm" class="mt-3 pt-3 border-t border-[#1b2742] flex items-center gap-2">
           
           <!-- VOICE INPUT BUTTON (Sarvam Saaras STT + MediaRecorder) -->
-          <button type="button" id="micBtn" class="w-11 h-11 rounded-2xl bg-[#141f35] hover:bg-red-500/20 border border-[#223252] hover:border-red-500/50 text-slate-200 hover:text-red-400 flex items-center justify-center transition shrink-0 relative active:scale-95 shadow-md" title="Click to speak (Sarvam Saaras STT)">
+          <button type="button" id="micBtn" class="w-11 h-11 rounded-2xl bg-[#141f35] hover:bg-red-500/20 border border-[#223252] hover:border-red-500/50 text-slate-200 hover:text-red-400 flex items-center justify-center transition shrink-0 relative active:scale-95 shadow-md" title="Speak to Guru AI (Microphone)">
             <span id="micIcon" class="text-lg">🎙️</span>
             <span id="micPulse" class="hidden absolute inset-0 rounded-2xl bg-red-500/30 animate-ping"></span>
           </button>
 
           <!-- Text Field -->
-          <input type="text" id="userInput" placeholder="Ask a question or explain what you understand..." class="flex-1 bg-[#131c30] border border-[#202d49] rounded-2xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner">
+          <input type="text" id="userInput" placeholder="Ask a question or explain what you understand..." class="flex-1 bg-[#121a2d] border border-[#1f2c48] rounded-2xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner">
 
           <!-- Submit Button -->
           <button type="submit" id="sendBtn" class="w-11 h-11 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-lg shadow-indigo-600/30 shrink-0 font-bold active:scale-95">
@@ -278,34 +294,37 @@
     <!-- RIGHT COLUMN: Visual Interactive Whiteboard (7 cols) -->
     <section class="lg:col-span-7 flex flex-col gap-4">
 
-      <!-- WHITEBOARD CONTAINER (Stitch Layout) -->
-      <div class="bg-[#101728]/90 border border-[#1d2a45] rounded-3xl p-5 shadow-2xl flex-1 flex flex-col relative overflow-hidden min-h-[580px] backdrop-blur-xl">
+      <!-- WHITEBOARD CONTAINER -->
+      <div class="bg-[#0e1526]/90 border border-[#1b2742] rounded-3xl p-5 shadow-2xl flex-1 flex flex-col relative overflow-hidden min-h-[580px] backdrop-blur-xl">
         
         <!-- Whiteboard Header & Controls -->
-        <div class="flex items-center justify-between border-b border-[#1d2a45] pb-3 mb-4 flex-wrap gap-2">
+        <div class="flex items-center justify-between border-b border-[#1b2742] pb-3 mb-4 flex-wrap gap-2">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-base shadow-sm">
               📋
             </div>
             <div>
               <h2 id="whiteboardTitle" class="text-sm font-bold text-slate-100">Live Visual Whiteboard</h2>
-              <p class="text-[11px] text-slate-400">Synchronized Mermaid diagrams & KaTeX equations</p>
+              <p class="text-[11px] text-slate-400">Synchronized Mermaid diagrams, KaTeX equations & Revision sheets</p>
             </div>
           </div>
 
-          <!-- Tab View Controls -->
-          <div class="flex items-center gap-1.5 bg-[#131c30] border border-[#202d49] p-1 rounded-xl text-xs">
-            <button id="viewDiagramBtn" class="view-tab active px-3 py-1.5 rounded-lg text-indigo-300 font-semibold bg-indigo-600/30">📊 Diagram</button>
-            <button id="viewFormulaBtn" class="view-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200">📐 Math / Formula</button>
-            <button id="viewStepsBtn" class="view-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200">📝 Notes</button>
+          <!-- View Tabs & Revision Generator -->
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1 bg-[#121a2d] border border-[#1f2c48] p-1 rounded-xl text-xs">
+              <button id="viewDiagramBtn" class="view-tab active px-3 py-1.5 rounded-lg text-indigo-300 font-semibold bg-indigo-600/30">📊 Diagram</button>
+              <button id="viewFormulaBtn" class="view-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200">📐 Math / Formula</button>
+              <button id="viewNotesBtn" class="view-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200">💡 Key Insights</button>
+              <button id="viewSummaryBtn" class="view-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200">📑 Study Guide</button>
+            </div>
           </div>
         </div>
 
         <!-- MAIN WHITEBOARD CANVAS -->
-        <div id="whiteboardCanvas" class="flex-1 bg-[#090d16] border border-[#19243c] rounded-2xl p-6 flex flex-col items-center justify-center overflow-auto relative min-h-[440px] shadow-inner">
+        <div id="whiteboardCanvas" class="flex-1 bg-[#070b15] border border-[#162138] rounded-2xl p-6 flex flex-col items-center justify-center overflow-auto relative min-h-[440px] shadow-inner">
           
           <!-- Diagram Layer (Mermaid) -->
-          <div id="diagramLayer" class="w-full flex items-center justify-center text-center">
+          <div id="diagramLayer" class="w-full flex flex-col items-center justify-center text-center">
             <div id="mermaidTarget" class="w-full flex items-center justify-center">
               <div class="mermaid text-center">
                 flowchart TD
@@ -321,7 +340,7 @@
           <!-- Math / LaTeX Formula Layer -->
           <div id="formulaLayer" class="hidden w-full flex flex-col items-center justify-center text-center p-8 space-y-4">
             <span class="text-xs uppercase tracking-wider text-indigo-400 font-bold">Core Formulation</span>
-            <div id="katexTarget" class="text-xl md:text-2xl text-emerald-300 font-mono bg-[#11192d] border border-[#1e2c49] px-6 py-4 rounded-2xl shadow-inner">
+            <div id="katexTarget" class="text-xl md:text-2xl text-emerald-300 font-mono bg-[#0f172a] border border-[#1e293b] px-6 py-4 rounded-2xl shadow-inner">
               6CO_2 + 6H_2O + \text{light} \longrightarrow C_6H_{12}O_6 + 6O_2
             </div>
             <p id="formulaExplanation" class="text-xs text-slate-400 max-w-md leading-relaxed">
@@ -329,32 +348,47 @@
             </p>
           </div>
 
-          <!-- Step-by-step Notes Layer -->
-          <div id="stepsLayer" class="hidden w-full p-4 space-y-3">
-            <div class="bg-[#121b2f] border border-[#1f2e4d] rounded-xl p-3.5">
-              <span class="text-xs font-bold text-amber-400">Step 1: Light Capture</span>
-              <p class="text-xs text-slate-300 mt-1">Chlorophyll molecules absorb red and blue wavelengths while reflecting green light.</p>
+          <!-- Key Insights / Flashcards Layer -->
+          <div id="notesLayer" class="hidden w-full p-4 space-y-3">
+            <div class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-3.5">
+              <span class="text-xs font-bold text-amber-400">Principle 1: Light Capture</span>
+              <p class="text-xs text-slate-300 mt-1">Chlorophyll pigments absorb photons from solar radiation, primarily blue and red spectrums.</p>
             </div>
-            <div class="bg-[#121b2f] border border-[#1f2e4d] rounded-xl p-3.5">
-              <span class="text-xs font-bold text-emerald-400">Step 2: Water Photolysis</span>
-              <p class="text-xs text-slate-300 mt-1">Water molecules split into electrons, protons, and diatomic oxygen gas.</p>
+            <div class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-3.5">
+              <span class="text-xs font-bold text-emerald-400">Principle 2: Water Photolysis</span>
+              <p class="text-xs text-slate-300 mt-1">Water molecules are dissociated into protons, electrons, and free atmospheric oxygen.</p>
             </div>
-            <div class="bg-[#121b2f] border border-[#1f2e4d] rounded-xl p-3.5">
-              <span class="text-xs font-bold text-indigo-400">Step 3: Calvin Cycle</span>
-              <p class="text-xs text-slate-300 mt-1">ATP and NADPH power the fixation of atmospheric carbon into storable sugars.</p>
+            <div class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-3.5">
+              <span class="text-xs font-bold text-indigo-400">Principle 3: Calvin Cycle</span>
+              <p class="text-xs text-slate-300 mt-1">ATP and NADPH drive the enzymatic fixation of carbon dioxide into glucose sugars.</p>
             </div>
+          </div>
+
+          <!-- Study Guide / Summary Layer -->
+          <div id="summaryLayer" class="hidden w-full p-6 text-left space-y-4 max-w-2xl">
+            <div class="flex items-center justify-between border-b border-[#1e293b] pb-2">
+              <h3 class="text-sm font-bold text-indigo-300">🎓 Student Revision Guide</h3>
+              <button id="downloadSummaryBtn" class="text-xs text-emerald-400 hover:text-emerald-300 transition">📥 Copy Notes</button>
+            </div>
+            <div id="summaryContent" class="text-xs text-slate-300 leading-relaxed font-mono whitespace-pre-wrap">
+              Click below to generate an AI study summary based on today's lesson.
+            </div>
+            <button id="generateSummaryBtn" class="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition shadow-md">
+              ⚡ Generate Lesson Study Sheet
+            </button>
           </div>
 
         </div>
 
-        <!-- Whiteboard Footer Info -->
-        <div class="mt-4 flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-[#1d2a45]">
+        <!-- Whiteboard Footer Bar -->
+        <div class="mt-4 flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-[#1b2742]">
           <div class="flex items-center gap-4">
             <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-400"></span> Mermaid Flowchart</span>
             <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> KaTeX Math</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Socratic Checkpoints</span>
           </div>
           <div class="flex items-center gap-2">
-            <button id="resetWhiteboardBtn" class="hover:text-slate-200 transition px-2.5 py-1 rounded-lg bg-[#131c30] border border-[#202d49]">↻ Reset Board</button>
+            <button id="resetWhiteboardBtn" class="hover:text-slate-200 transition px-2.5 py-1 rounded-lg bg-[#121a2d] border border-[#1f2c48]">↻ Reset Board</button>
           </div>
         </div>
 

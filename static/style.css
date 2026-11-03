@@ -1,16 +1,17 @@
-/* Custom Styling & Avatar Animations */
+/* Custom Styling & Avatar Animations - Stitch Showcase Edition */
 
 @keyframes avatarBreathe {
   0%, 100% {
-    transform: translateY(0px);
+    transform: translateY(0px) rotate(0deg);
   }
   50% {
-    transform: translateY(-4px);
+    transform: translateY(-4px) rotate(0.4deg);
   }
 }
 
 #avatarSvg {
   animation: avatarBreathe 4s ease-in-out infinite;
+  transform-origin: center bottom;
 }
 
 /* Soundwave Animation */
@@ -36,24 +37,25 @@
 
 /* Avatar Speaking Glow */
 .avatar-speaking #avatarHalo {
-  border-color: rgba(99, 102, 241, 0.6);
-  transform: scale(1.08);
-  box-shadow: 0 0 25px rgba(99, 102, 241, 0.35);
+  border-color: rgba(99, 102, 241, 0.7);
+  transform: scale(1.1);
+  box-shadow: 0 0 35px rgba(99, 102, 241, 0.45);
 }
 
 .avatar-speaking #avatarHaloOuter {
-  border-color: rgba(168, 85, 247, 0.4);
-  transform: scale(1.15);
+  border-color: rgba(168, 85, 247, 0.5);
+  transform: scale(1.18);
+  box-shadow: 0 0 45px rgba(168, 85, 247, 0.25);
 }
 
-/* Custom Scrollbar */
+/* Custom Sleek Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0c1220;
+  background: #090e1a;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -69,11 +71,28 @@
 #mermaidTarget svg {
   max-width: 100% !important;
   height: auto !important;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.3));
 }
 
 /* Topic chips active state */
 .topic-chip.active {
-  background: rgba(99, 102, 241, 0.3);
-  border-color: rgba(99, 102, 241, 0.6);
-  color: #c7d2fe;
+  background: rgba(99, 102, 241, 0.35);
+  border-color: rgba(99, 102, 241, 0.7);
+  color: #e0e7ff;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+}
+
+/* KaTeX formula display enhancement */
+.katex-display {
+  margin: 0.5em 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Glassmorphism subtle highlight */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }

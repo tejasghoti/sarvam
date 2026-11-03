@@ -1,8 +1,8 @@
-// Sarvam AI Avatar Tutor — Full Interactive Frontend
-// Voice: Sarvam Bulbul TTS playback + Sarvam Saaras STT via MediaRecorder
+// Guru AI - Sarvam AI Avatar Tutor Full Interactive Logic
+// Real-time voice interaction, Socratic adaptive checks, Mermaid diagrams & KaTeX equations
 
 document.addEventListener("DOMContentLoaded", () => {
-  // ── Mermaid init ──
+  // ── Mermaid Initialization ──
   mermaid.initialize({
     startOnLoad: false,
     theme: "dark",
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   });
 
-  // ── State ──
+  // ── Application State ──
   const state = {
     language: "en-IN",
     speaker: "aditya",
@@ -28,16 +28,17 @@ document.addEventListener("DOMContentLoaded", () => {
     history: [],
     isSpeaking: false,
     isRecording: false,
+    callMode: false,
     currentQuestion: null,
     mediaRecorder: null,
     audioChunks: [],
-    recordingStartTime: null,
     recordingTimerInterval: null,
     lastSpokenText: "",
     lastAudioBase64: null,
+    studyContext: "",
   };
 
-  // ── DOM refs ──
+  // ── DOM References ──
   const $ = (id) => document.getElementById(id);
   const chatFeed = $("chatFeed");
   const chatForm = $("chatForm");
@@ -53,18 +54,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const soundWave = $("soundWave");
   const avatarStatusDot = $("avatarStatusDot");
   const avatarStatusText = $("avatarStatusText");
+  const avatarMoodBadge = $("avatarMoodBadge");
   const avatarMouth = $("avatarMouth");
   const leftEye = $("leftEye");
   const rightEye = $("rightEye");
   const whiteboardTitle = $("whiteboardTitle");
   const diagramLayer = $("diagramLayer");
   const formulaLayer = $("formulaLayer");
-  const stepsLayer = $("stepsLayer");
+  const notesLayer = $("notesLayer");
+  const summaryLayer = $("summaryLayer");
   const mermaidTarget = $("mermaidTarget");
   const katexTarget = $("katexTarget");
+  const formulaExplanation = $("formulaExplanation");
   const viewDiagramBtn = $("viewDiagramBtn");
   const viewFormulaBtn = $("viewFormulaBtn");
-  const viewStepsBtn = $("viewStepsBtn");
+  const viewNotesBtn = $("viewNotesBtn");
+  const viewSummaryBtn = $("viewSummaryBtn");
   const resetWhiteboardBtn = $("resetWhiteboardBtn");
   const adaptiveCard = $("adaptiveCard");
   const adaptiveQuestionText = $("adaptiveQuestionText");
@@ -76,9 +81,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const testVoiceBtn = $("testVoiceBtn");
   const testVoiceIcon = $("testVoiceIcon");
   const replayVoiceBtn = $("replayVoiceBtn");
+  const callModeBtn = $("callModeBtn");
+  const callModeIndicator = $("callModeIndicator");
+  const callModeText = $("callModeText");
+  const generateSummaryBtn = $("generateSummaryBtn");
+  const summaryContent = $("summaryContent");
+  const downloadSummaryBtn = $("downloadSummaryBtn");
 
   // ═══════════════════════════════════════════════
-  // 1. AVATAR ANIMATIONS — blink + lip-sync
+  // 1. AVATAR ANIMATIONS — Blink, Lip-Sync, Mood
   // ═══════════════════════════════════════════════
   function triggerBlink() {
     leftEye.setAttribute("ry", "0.5");
@@ -97,10 +108,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.add("avatar-speaking");
     soundWave.classList.add("wave-animating");
     soundWave.classList.remove("opacity-40");
-    avatarStatusDot.className =
-      "w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400 animate-pulse";
+    avatarStatusDot.className = "w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400 animate-pulse";
     avatarStatusText.textContent = "Speaking...";
     avatarStatusText.className = "text-xs font-semibold text-indigo-400";
+    avatarMoodBadge.textContent = "🎙️ Explaining";
+
     let open = false;
     mouthInterval = setInterval(() => {
       open = !open;
@@ -108,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "d",
         open ? "M86 108 Q100 126 114 108" : "M88 110 Q100 115 112 110"
       );
-    }, 140);
+    }, 130);
   }
 
   function stopSpeakingAnimation() {
@@ -116,16 +128,25 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("avatar-speaking");
     soundWave.classList.remove("wave-animating");
     soundWave.classList.add("opacity-40");
-    avatarStatusDot.className =
-      "w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400";
+    avatarStatusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400";
     avatarStatusText.textContent = "Ready";
     avatarStatusText.className = "text-xs font-semibold text-emerald-400";
+    avatarMoodBadge.textContent = "✨ Ready";
     clearInterval(mouthInterval);
     avatarMouth.setAttribute("d", "M88 110 Q100 118 112 110");
+
+    // If hands-free call mode is active, prompt student to speak after tutor finishes
+    if (state.callMode && !state.isRecording) {
+      setTimeout(() => {
+        if (state.callMode && !state.isSpeaking && !state.isRecording) {
+          startRecording();
+        }
+      }, 700);
+    }
   }
 
   // ═══════════════════════════════════════════════
-  // 2. VOICE PLAYBACK — Sarvam Bulbul TTS + fallback
+  // 2. VOICE PLAYBACK (Sarvam Bulbul v3 TTS)
   // ═══════════════════════════════════════════════
   function playTutorSpeech(text, audioBase64) {
     state.lastSpokenText = text;
@@ -155,9 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.speechSynthesis.speak(u);
   }
 
-  // ═══════════════════════════════════════════════
-  // 3. TEST VOICE button — quick Bulbul TTS test
-  // ═══════════════════════════════════════════════
+  // Test voice button
   if (testVoiceBtn) {
     testVoiceBtn.addEventListener("click", async () => {
       testVoiceBtn.disabled = true;
@@ -172,12 +191,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!res.ok) throw new Error("TTS test failed");
         const data = await res.json();
         playTutorSpeech(
-          "Namaste! I am your Sarvam AI Tutor. My voice is ready!",
+          "Namaste! I am Guru AI, your Sarvam tutor. My voice is ready and working!",
           data.audio_base64
         );
       } catch (e) {
         console.warn("Test voice error:", e);
-        fallbackWebSpeech("Voice test: Hello, I am your AI Tutor!");
+        fallbackWebSpeech("Namaste! I am your Sarvam AI Tutor. My voice is ready!");
       } finally {
         testVoiceBtn.disabled = false;
         testVoiceIcon.textContent = "🔊";
@@ -185,9 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ═══════════════════════════════════════════════
-  // 4. REPLAY button — replays last tutor utterance
-  // ═══════════════════════════════════════════════
+  // Replay voice button
   if (replayVoiceBtn) {
     replayVoiceBtn.addEventListener("click", () => {
       if (state.lastSpokenText) {
@@ -197,43 +214,75 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ═══════════════════════════════════════════════
-  // 5. WHITEBOARD view switching + rendering
+  // 3. HANDS-FREE CALL MODE TOGGLE
+  // ═══════════════════════════════════════════════
+  if (callModeBtn) {
+    callModeBtn.addEventListener("click", () => {
+      state.callMode = !state.callMode;
+      if (state.callMode) {
+        callModeIndicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+        callModeText.textContent = "Call Mode: Active";
+        callModeText.className = "text-emerald-400 font-semibold";
+        callModeBtn.classList.add("border-emerald-500/60", "bg-emerald-500/10");
+        appendChat("assistant", "📞 Hands-free Voice Call connected! Speak naturally — I will listen when I finish explaining.");
+        if (!state.isSpeaking && !state.isRecording) {
+          startRecording();
+        }
+      } else {
+        callModeIndicator.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
+        callModeText.textContent = "Call Mode: Off";
+        callModeText.className = "text-slate-300";
+        callModeBtn.classList.remove("border-emerald-500/60", "bg-emerald-500/10");
+        if (state.isRecording) {
+          stopRecording();
+        }
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════════════
+  // 4. WHITEBOARD VIEW SWITCHING & RENDERING
   // ═══════════════════════════════════════════════
   function switchWhiteboardView(view) {
     diagramLayer.classList.add("hidden");
     formulaLayer.classList.add("hidden");
-    stepsLayer.classList.add("hidden");
-    const inactive =
-      "view-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200";
-    const active =
-      "view-tab active px-3 py-1.5 rounded-lg text-indigo-300 font-semibold bg-indigo-600/30";
+    notesLayer.classList.add("hidden");
+    summaryLayer.classList.add("hidden");
+
+    const inactive = "view-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200";
+    const active = "view-tab active px-3 py-1.5 rounded-lg text-indigo-300 font-semibold bg-indigo-600/30";
+    
     viewDiagramBtn.className = inactive;
     viewFormulaBtn.className = inactive;
-    viewStepsBtn.className = inactive;
+    viewNotesBtn.className = inactive;
+    viewSummaryBtn.className = inactive;
+
     if (view === "diagram") {
       diagramLayer.classList.remove("hidden");
       viewDiagramBtn.className = active;
     } else if (view === "formula") {
       formulaLayer.classList.remove("hidden");
       viewFormulaBtn.className = active;
-    } else {
-      stepsLayer.classList.remove("hidden");
-      viewStepsBtn.className = active;
+    } else if (view === "notes") {
+      notesLayer.classList.remove("hidden");
+      viewNotesBtn.className = active;
+    } else if (view === "summary") {
+      summaryLayer.classList.remove("hidden");
+      viewSummaryBtn.className = active;
     }
   }
-  viewDiagramBtn.addEventListener("click", () =>
-    switchWhiteboardView("diagram")
-  );
-  viewFormulaBtn.addEventListener("click", () =>
-    switchWhiteboardView("formula")
-  );
-  viewStepsBtn.addEventListener("click", () => switchWhiteboardView("steps"));
 
-  async function renderWhiteboard(wb) {
+  viewDiagramBtn.addEventListener("click", () => switchWhiteboardView("diagram"));
+  viewFormulaBtn.addEventListener("click", () => switchWhiteboardView("formula"));
+  viewNotesBtn.addEventListener("click", () => switchWhiteboardView("notes"));
+  viewSummaryBtn.addEventListener("click", () => switchWhiteboardView("summary"));
+
+  async function renderWhiteboard(wb, takeaways) {
     if (!wb) return;
     if (wb.title) whiteboardTitle.textContent = wb.title;
     const type = wb.type || "diagram";
     const content = wb.content || "";
+
     if (type === "diagram") {
       switchWhiteboardView("diagram");
       try {
@@ -257,35 +306,68 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch {
         katexTarget.textContent = content;
       }
-    } else {
-      switchWhiteboardView("steps");
-      const lines = content.split("\n").filter((l) => l.trim().length > 0);
-      stepsLayer.innerHTML = lines
+    }
+
+    // Always update takeaways in the notes tab
+    if (takeaways && takeaways.length > 0) {
+      notesLayer.innerHTML = takeaways
         .map(
-          (l, i) =>
-            '<div class="bg-[#121b2f] border border-[#1f2e4d] rounded-xl p-3.5">' +
-            '<span class="text-xs font-bold text-indigo-400">Key Point ' +
-            (i + 1) +
-            "</span>" +
-            '<p class="text-xs text-slate-300 mt-1">' +
-            l.replace(/^[-*•0-9.]+\s*/, "") +
-            "</p></div>"
+          (t, i) => `
+          <div class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-3.5 shadow-sm transition hover:border-indigo-500/40">
+            <span class="text-xs font-bold text-indigo-400">Core Insight ${i + 1}</span>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">${t}</p>
+          </div>
+        `
         )
         .join("");
     }
   }
 
   resetWhiteboardBtn.addEventListener("click", () => {
-    renderWhiteboard({
-      title: "Clean Slate",
-      type: "diagram",
-      content:
-        "flowchart TD\n  Start[Interactive Lesson Ready] --> Ask[Ask any question or pick a topic]",
-    });
+    renderWhiteboard(
+      {
+        title: "Clean Slate",
+        type: "diagram",
+        content: "flowchart TD\n  Start[Interactive Lesson Ready] --> Ask[Ask any question or pick a topic]",
+      },
+      ["Ask a question to see real-time insights and diagrams."]
+    );
   });
 
   // ═══════════════════════════════════════════════
-  // 6. CHAT helpers
+  // 5. REVISION GUIDE GENERATOR
+  // ═══════════════════════════════════════════════
+  if (generateSummaryBtn) {
+    generateSummaryBtn.addEventListener("click", async () => {
+      generateSummaryBtn.disabled = true;
+      generateSummaryBtn.textContent = "⏳ Generating AI Study Sheet...";
+      try {
+        const res = await fetch("/api/summary", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(state.history),
+        });
+        const data = await res.json();
+        summaryContent.textContent = data.summary;
+      } catch (e) {
+        summaryContent.textContent = "### Lesson Notes\n- Completed conceptual dialogue on " + state.topic;
+      } finally {
+        generateSummaryBtn.disabled = false;
+        generateSummaryBtn.textContent = "⚡ Refresh Study Sheet";
+      }
+    });
+  }
+
+  if (downloadSummaryBtn) {
+    downloadSummaryBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(summaryContent.textContent);
+      downloadSummaryBtn.textContent = "✅ Copied!";
+      setTimeout(() => (downloadSummaryBtn.textContent = "📥 Copy Notes"), 2000);
+    });
+  }
+
+  // ═══════════════════════════════════════════════
+  // 6. CHAT FEED HELPERS
   // ═══════════════════════════════════════════════
   function appendChat(role, message) {
     const div = document.createElement("div");
@@ -296,11 +378,11 @@ document.addEventListener("DOMContentLoaded", () => {
         '<div class="bg-indigo-600 text-white rounded-2xl rounded-tr-sm p-3 text-xs leading-relaxed max-w-[85%] shadow-md">' +
         message +
         "</div>" +
-        '<div class="w-7 h-7 rounded-xl bg-indigo-500/30 border border-indigo-500/40 flex items-center justify-center text-xs shrink-0">👤</div>';
+        '<div class="w-7 h-7 rounded-xl bg-indigo-500/30 border border-indigo-500/40 flex items-center justify-center text-xs shrink-0 font-bold">👤</div>';
     } else {
       div.innerHTML =
         '<div class="w-7 h-7 rounded-xl bg-indigo-600 flex items-center justify-center text-xs shrink-0 font-bold shadow-md shadow-indigo-600/30">G</div>' +
-        '<div class="bg-[#152036] border border-[#233354] rounded-2xl rounded-tl-sm p-3 text-xs text-slate-200 leading-relaxed max-w-[85%] shadow-sm">' +
+        '<div class="bg-[#141e33] border border-[#223150] rounded-2xl rounded-tl-sm p-3 text-xs text-slate-200 leading-relaxed max-w-[85%] shadow-sm">' +
         message +
         "</div>";
     }
@@ -314,7 +396,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ═══════════════════════════════════════════════
-  // 7. ADAPTIVE QUESTION checkpoint
+  // 7. ADAPTIVE QUESTION CHECKPOINTS
   // ═══════════════════════════════════════════════
   function renderAdaptiveQuestion(question, options, correctIdx, feedback) {
     if (!question) {
@@ -325,11 +407,12 @@ document.addEventListener("DOMContentLoaded", () => {
     adaptiveQuestionText.textContent = question;
     adaptiveOptions.innerHTML = "";
     adaptiveFeedback.classList.add("hidden");
+
     if (options && options.length > 0) {
       options.forEach((opt, idx) => {
         const btn = document.createElement("button");
         btn.className =
-          "w-full text-left px-3.5 py-2 rounded-xl bg-[#131c30] border border-[#223252] text-xs text-slate-200 hover:border-indigo-500/60 hover:bg-indigo-600/10 transition flex items-center justify-between";
+          "w-full text-left px-3.5 py-2 rounded-xl bg-[#121a2d] border border-[#1f2c48] text-xs text-slate-200 hover:border-indigo-500/60 hover:bg-indigo-600/10 transition flex items-center justify-between";
         btn.innerHTML =
           "<span><strong class='text-indigo-400 mr-2'>" +
           String.fromCharCode(65 + idx) +
@@ -348,33 +431,46 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!q) return;
     const correct = q.correctIdx !== null && selectedIdx === q.correctIdx;
     adaptiveFeedback.classList.remove("hidden");
+
     if (correct) {
       btnEl.className =
         "w-full text-left px-3.5 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/60 text-xs text-emerald-200 font-semibold";
       adaptiveFeedback.className = "text-xs mt-2 font-medium text-emerald-400";
-      adaptiveFeedback.textContent =
-        "🎉 Excellent! " + (q.feedback || "You nailed it!");
+      adaptiveFeedback.textContent = "🎉 Excellent! " + (q.feedback || "You nailed it!");
+      avatarMoodBadge.textContent = "🎉 Celebrating";
       updateMastery(state.mastery + 15);
+
+      // Trigger Confetti Celebration!
+      if (typeof confetti === "function") {
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: { y: 0.7 },
+        });
+      }
     } else {
       btnEl.className =
         "w-full text-left px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-500/60 text-xs text-amber-200";
       adaptiveFeedback.className = "text-xs mt-2 font-medium text-amber-400";
-      adaptiveFeedback.textContent =
-        "💡 Good try! " + (q.feedback || "Let's explore this deeper.");
+      adaptiveFeedback.textContent = "💡 Good attempt! " + (q.feedback || "Let's explore this deeper.");
+      avatarMoodBadge.textContent = "💡 Encouraging";
       updateMastery(state.mastery + 5);
     }
+
     Array.from(adaptiveOptions.children).forEach((c) => (c.disabled = true));
     setTimeout(() => {
       sendUserMessage(
-        'I answered: "' +
+        'I selected: "' +
           q.options[selectedIdx] +
-          '". Explain whether that is right and move to the next concept.'
+          '". Explain why that is ' +
+          (correct ? "correct" : "partially correct") +
+          " and guide me to the next concept."
       );
-    }, 1200);
+    }, 1300);
   }
 
   // ═══════════════════════════════════════════════
-  // 8. SEND MESSAGE → Sarvam 105B + TTS
+  // 8. SEND MESSAGE → Sarvam 105B Brain + Bulbul TTS
   // ═══════════════════════════════════════════════
   async function sendUserMessage(text) {
     if (!text || !text.trim()) return;
@@ -383,11 +479,11 @@ document.addEventListener("DOMContentLoaded", () => {
     appendChat("user", msg);
     state.history.push({ role: "user", content: msg });
 
-    // thinking indicator
-    avatarStatusDot.className =
-      "w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping";
+    // Avatar Thinking state
+    avatarStatusDot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping";
     avatarStatusText.textContent = "Thinking...";
     avatarStatusText.className = "text-xs font-semibold text-amber-400";
+    avatarMoodBadge.textContent = "🧠 Thinking";
 
     try {
       const res = await fetch("/api/chat", {
@@ -405,12 +501,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok) throw new Error("Server " + res.status);
       const data = await res.json();
 
-      const spoken = data.spoken_explanation || "Let's explore this together.";
+      const spoken = data.spoken_explanation || "Let's unpack this concept step-by-step.";
       tutorSpokenBubble.textContent = '"' + spoken + '"';
       appendChat("assistant", spoken);
       state.history.push({ role: "assistant", content: spoken });
 
-      if (data.whiteboard) renderWhiteboard(data.whiteboard);
+      if (data.whiteboard) renderWhiteboard(data.whiteboard, data.key_takeaways);
       if (data.adaptive_question)
         renderAdaptiveQuestion(
           data.adaptive_question,
@@ -424,9 +520,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       console.error("Chat error:", err);
       avatarStatusDot.className = "w-2.5 h-2.5 rounded-full bg-red-400";
-      avatarStatusText.textContent = "Error";
+      avatarStatusText.textContent = "Offline";
       avatarStatusText.className = "text-xs font-semibold text-red-400";
-      appendChat("assistant", "Connection issue — please check the server.");
+      appendChat("assistant", "I encountered a brief connection glitch. Please check the backend server.");
     }
   }
 
@@ -440,19 +536,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ═══════════════════════════════════════════════
   document.querySelectorAll(".topic-chip").forEach((chip) => {
     chip.addEventListener("click", () => {
-      document
-        .querySelectorAll(".topic-chip")
-        .forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".topic-chip").forEach((c) => c.classList.remove("active"));
       chip.classList.add("active");
       state.topic = chip.getAttribute("data-topic");
-      sendUserMessage(
-        "Give me a visual interactive lesson on " + state.topic + "."
-      );
+      sendUserMessage("Can you give me a visual interactive lesson on " + state.topic + "?");
     });
   });
 
   // ═══════════════════════════════════════════════
-  // 10. VOICE INPUT — MediaRecorder → Sarvam Saaras STT
+  // 10. VOICE INPUT (MediaRecorder → Sarvam Saaras STT)
   // ═══════════════════════════════════════════════
   function formatTimer(seconds) {
     const m = String(Math.floor(seconds / 60)).padStart(2, "0");
@@ -463,28 +555,22 @@ document.addEventListener("DOMContentLoaded", () => {
   function showRecordingUI() {
     state.isRecording = true;
     micIcon.textContent = "⏹️";
-    micBtn.classList.add(
-      "bg-red-500/30",
-      "border-red-500/60",
-      "text-red-300"
-    );
+    micBtn.classList.add("bg-red-500/30", "border-red-500/60", "text-red-300");
     micPulse.classList.remove("hidden");
     if (voiceRecordingBanner) {
       voiceRecordingBanner.classList.remove("hidden");
       recordingStatusText.textContent = "Recording your voice...";
     }
-    avatarStatusDot.className =
-      "w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse";
-    avatarStatusText.textContent = "Listening...";
+    avatarStatusDot.className = "w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse";
+    avatarStatusText.textContent = "Listening to you...";
     avatarStatusText.className = "text-xs font-semibold text-red-400";
+    avatarMoodBadge.textContent = "👂 Listening";
 
-    // Timer
     let elapsed = 0;
     if (recordingTimer) recordingTimer.textContent = "00:00";
     state.recordingTimerInterval = setInterval(() => {
       elapsed++;
       if (recordingTimer) recordingTimer.textContent = formatTimer(elapsed);
-      // auto-stop at 30s
       if (elapsed >= 30) stopRecording();
     }, 1000);
   }
@@ -492,16 +578,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function hideRecordingUI() {
     state.isRecording = false;
     micIcon.textContent = "🎙️";
-    micBtn.classList.remove(
-      "bg-red-500/30",
-      "border-red-500/60",
-      "text-red-300"
-    );
+    micBtn.classList.remove("bg-red-500/30", "border-red-500/60", "text-red-300");
     micPulse.classList.add("hidden");
     if (voiceRecordingBanner) voiceRecordingBanner.classList.add("hidden");
     clearInterval(state.recordingTimerInterval);
-    avatarStatusDot.className =
-      "w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400";
+    avatarStatusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400";
     avatarStatusText.textContent = "Ready";
     avatarStatusText.className = "text-xs font-semibold text-emerald-400";
   }
@@ -510,7 +591,6 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // Prefer webm; fall back to whatever the browser supports
       let mimeType = "audio/webm;codecs=opus";
       if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = "audio/webm";
@@ -531,7 +611,6 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       state.mediaRecorder.onstop = async () => {
-        // Stop all mic tracks
         stream.getTracks().forEach((t) => t.stop());
 
         const blob = new Blob(state.audioChunks, {
@@ -539,23 +618,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         if (blob.size < 1000) {
           hideRecordingUI();
-          appendChat("assistant", "I didn't catch any audio. Please try again.");
+          appendChat("assistant", "I couldn't hear any audio. Please try speaking again.");
           return;
         }
 
-        // Convert to base64
         const reader = new FileReader();
         reader.onloadend = async () => {
           const base64 = reader.result.split(",")[1];
           hideRecordingUI();
 
-          // Show processing state
-          avatarStatusDot.className =
-            "w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping";
+          avatarStatusDot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping";
           avatarStatusText.textContent = "Transcribing...";
           avatarStatusText.className = "text-xs font-semibold text-amber-400";
           if (recordingStatusText)
-            recordingStatusText.textContent = "Transcribing with Sarvam Saaras...";
+            recordingStatusText.textContent = "Transcribing with Sarvam Saaras STT...";
 
           try {
             const res = await fetch("/api/stt", {
@@ -572,41 +648,27 @@ document.addEventListener("DOMContentLoaded", () => {
               userInput.value = data.transcript;
               sendUserMessage(data.transcript);
             } else {
-              // Fallback: tell user nothing was heard
-              appendChat(
-                "assistant",
-                "I couldn't understand the audio. Try speaking louder or type your question."
-              );
-              avatarStatusDot.className =
-                "w-2.5 h-2.5 rounded-full bg-emerald-400";
+              appendChat("assistant", "I couldn't detect clear speech. Please try speaking a bit louder or type your query.");
+              avatarStatusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
               avatarStatusText.textContent = "Ready";
-              avatarStatusText.className =
-                "text-xs font-semibold text-emerald-400";
+              avatarStatusText.className = "text-xs font-semibold text-emerald-400";
             }
           } catch (err) {
             console.error("STT fetch error:", err);
-            appendChat(
-              "assistant",
-              "Voice transcription failed. Please type your question instead."
-            );
-            avatarStatusDot.className =
-              "w-2.5 h-2.5 rounded-full bg-emerald-400";
+            appendChat("assistant", "Voice transcription failed. Please type your question.");
+            avatarStatusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
             avatarStatusText.textContent = "Ready";
-            avatarStatusText.className =
-              "text-xs font-semibold text-emerald-400";
+            avatarStatusText.className = "text-xs font-semibold text-emerald-400";
           }
         };
         reader.readAsDataURL(blob);
       };
 
       state.mediaRecorder.start();
-      state.recordingStartTime = Date.now();
       showRecordingUI();
     } catch (err) {
       console.error("Mic access error:", err);
-      alert(
-        "Microphone access denied. Please allow microphone permission and try again."
-      );
+      alert("Microphone permission was denied. Please allow microphone access in your browser settings to use voice input.");
     }
   }
 
@@ -616,7 +678,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Mic button click: toggle recording
   micBtn.addEventListener("click", () => {
     if (state.isRecording) {
       stopRecording();
@@ -626,7 +687,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ═══════════════════════════════════════════════
-  // 11. SETTINGS CHANGES
+  // 11. SETTINGS LISTENERS
   // ═══════════════════════════════════════════════
   languageSelect.addEventListener("change", (e) => {
     state.language = e.target.value;
