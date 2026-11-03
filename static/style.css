@@ -1,0 +1,79 @@
+/* Custom Styling & Avatar Animations */
+
+@keyframes avatarBreathe {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+#avatarSvg {
+  animation: avatarBreathe 4s ease-in-out infinite;
+}
+
+/* Soundwave Animation */
+@keyframes waveBounce {
+  0%, 100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1.4);
+  }
+}
+
+.wave-bar {
+  transform-origin: bottom;
+}
+
+.wave-animating .wave-bar:nth-child(1) { animation: waveBounce 0.6s ease-in-out infinite 0.1s; }
+.wave-animating .wave-bar:nth-child(2) { animation: waveBounce 0.5s ease-in-out infinite 0.2s; }
+.wave-animating .wave-bar:nth-child(3) { animation: waveBounce 0.7s ease-in-out infinite 0.15s; }
+.wave-animating .wave-bar:nth-child(4) { animation: waveBounce 0.55s ease-in-out infinite 0.3s; }
+.wave-animating .wave-bar:nth-child(5) { animation: waveBounce 0.65s ease-in-out infinite 0.05s; }
+.wave-animating .wave-bar:nth-child(6) { animation: waveBounce 0.48s ease-in-out infinite 0.25s; }
+
+/* Avatar Speaking Glow */
+.avatar-speaking #avatarHalo {
+  border-color: rgba(99, 102, 241, 0.6);
+  transform: scale(1.08);
+  box-shadow: 0 0 25px rgba(99, 102, 241, 0.35);
+}
+
+.avatar-speaking #avatarHaloOuter {
+  border-color: rgba(168, 85, 247, 0.4);
+  transform: scale(1.15);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0c1220;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Mermaid SVG customization */
+#mermaidTarget svg {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Topic chips active state */
+.topic-chip.active {
+  background: rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.6);
+  color: #c7d2fe;
+}

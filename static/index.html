@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sarvam AI Avatar Tutor | Guru AI</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mermaid.js for Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- KaTeX for Math & Formulas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            stitch: {
+              surface: '#0d1322',
+              card: '#121a2d',
+              border: '#1f2b45',
+              accent: '#6366f1',
+              neon: '#10b981',
+              warning: '#f59e0b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#080c15] text-slate-100 min-h-screen flex flex-col font-sans antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+  <!-- Stitch Header Navigation -->
+  <header class="border-b border-[#1b253d] bg-[#0d1424]/90 backdrop-blur-xl sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between shadow-lg">
+    <div class="flex items-center gap-3.5">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-emerald-400 p-[1.5px] shadow-lg shadow-indigo-500/25">
+        <div class="w-full h-full bg-[#0d1424] rounded-[14px] flex items-center justify-center">
+          <span class="text-xl">🎓</span>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-extrabold text-base tracking-tight bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">Guru AI Tutor</h1>
+          <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">Sarvam Stack</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Multilingual Avatar Tutor • Bulbul TTS • Saaras STT • 105B Brain</p>
+      </div>
+    </div>
+
+    <!-- Right Controls: Language, Voice Speaker, Test Voice, Mastery Score -->
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <!-- Language Dropdown -->
+      <div class="flex items-center gap-1.5 bg-[#131c30] border border-[#202d49] px-3 py-1.5 rounded-xl text-xs">
+        <span class="text-slate-400">🌐</span>
+        <select id="languageSelect" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer">
+          <option value="en-IN" selected>English (India)</option>
+          <option value="hi-IN">हिन्दी (Hindi)</option>
+          <option value="ta-IN">தமிழ் (Tamil)</option>
+          <option value="te-IN">తెలుగు (Telugu)</option>
+          <option value="mr-IN">मराठी (Marathi)</option>
+          <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
+          <option value="bn-IN">বাংলা (Bengali)</option>
+          <option value="gu-IN">ગુજરાતી (Gujarati)</option>
+        </select>
+      </div>
+
+      <!-- Voice Speaker Dropdown -->
+      <div class="flex items-center gap-1.5 bg-[#131c30] border border-[#202d49] px-3 py-1.5 rounded-xl text-xs">
+        <span class="text-slate-400">🗣️</span>
+        <select id="speakerSelect" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer">
+          <option value="aditya" selected>Aditya (Male Tutor)</option>
+          <option value="simran">Simran (Female Tutor)</option>
+          <option value="shubh">Shubh (Dynamic Voice)</option>
+          <option value="ritu">Ritu (Encouraging Voice)</option>
+          <option value="priya">Priya (Clear Tone)</option>
+          <option value="rohan">Rohan (Energetic Voice)</option>
+        </select>
+      </div>
+
+      <!-- Test Voice Button -->
+      <button id="testVoiceBtn" class="flex items-center gap-1.5 bg-indigo-600/20 hover:bg-indigo-600/35 border border-indigo-500/40 text-indigo-300 px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 shadow-sm" title="Click to test Bulbul voice playback">
+        <span id="testVoiceIcon">🔊</span>
+        <span>Test Voice</span>
+      </button>
+
+      <!-- Live Comprehension Mastery Pill -->
+      <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
+        <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+        <span class="text-[11px] text-slate-300 font-medium">Mastery:</span>
+        <span id="masteryDisplay" class="text-xs font-bold text-emerald-400">15%</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Workspace -->
+  <main class="flex-1 max-w-[1700px] w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: AI Avatar Stage & Socratic Chat (5 cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-4">
+
+      <!-- AVATAR STAGE CARD (Glassmorphism Stitch Style) -->
+      <div class="bg-[#101728]/90 border border-[#1d2a45] rounded-3xl p-5 shadow-2xl relative overflow-hidden flex flex-col items-center backdrop-blur-xl">
+        <!-- Ambient Radial Glows -->
+        <div class="absolute -top-16 -left-16 w-52 h-52 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -right-16 w-52 h-52 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Top Avatar Status Bar -->
+        <div class="w-full flex items-center justify-between mb-1 z-10">
+          <div class="flex items-center gap-2 bg-[#141e34] border border-[#223150] px-3 py-1 rounded-full">
+            <span id="avatarStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400"></span>
+            <span id="avatarStatusText" class="text-xs font-semibold text-emerald-400">Ready to Teach</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="replayVoiceBtn" class="text-xs px-2.5 py-1 rounded-lg bg-[#16223a] border border-[#243557] hover:border-indigo-500/50 text-indigo-300 font-medium transition flex items-center gap-1 shadow-sm" title="Replay the last tutor explanation">
+              <span>🔄</span> Replay
+            </button>
+          </div>
+        </div>
+
+        <!-- LIFELIKE ANIMATED SVG AVATAR -->
+        <div class="relative w-52 h-52 flex items-center justify-center my-1 select-none">
+          <!-- Animated Aura Rings -->
+          <div id="avatarHalo" class="absolute inset-0 rounded-full border-2 border-indigo-500/20 scale-95 transition-all duration-300"></div>
+          <div id="avatarHaloOuter" class="absolute -inset-3 rounded-full border border-purple-500/10 scale-95 transition-all duration-500"></div>
+
+          <!-- Avatar Character Canvas/SVG -->
+          <svg id="avatarSvg" class="w-48 h-48 drop-shadow-2xl transition-transform duration-300" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fcd34d" />
+                <stop offset="100%" stop-color="#f59e0b" />
+              </linearGradient>
+              <linearGradient id="suitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4f46e5" />
+                <stop offset="100%" stop-color="#312e81" />
+              </linearGradient>
+              <linearGradient id="hairGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#1e1b4b" />
+                <stop offset="100%" stop-color="#0f172a" />
+              </linearGradient>
+            </defs>
+
+            <!-- Shoulders & Coat -->
+            <path d="M40 185 C40 145, 160 145, 160 185 Z" fill="url(#suitGrad)" />
+            <path d="M85 150 L100 170 L115 150 Z" fill="#ffffff" />
+            <path d="M96 160 L100 190 L104 160 Z" fill="#e11d48" />
+
+            <!-- Neck -->
+            <rect x="88" y="125" width="24" height="25" rx="6" fill="#f59e0b" />
+
+            <!-- Head Base -->
+            <circle cx="100" cy="85" r="48" fill="url(#skinGrad)" />
+
+            <!-- Hair -->
+            <path d="M52 80 C50 42, 150 42, 148 80 C135 55, 65 55, 52 80 Z" fill="url(#hairGrad)" />
+
+            <!-- Eyebrows -->
+            <path id="leftBrow" d="M72 68 Q82 65 90 70" stroke="#1e1b4b" stroke-width="3" stroke-linecap="round" fill="none" class="transition-all duration-300" />
+            <path id="rightBrow" d="M110 70 Q118 65 128 68" stroke="#1e1b4b" stroke-width="3" stroke-linecap="round" fill="none" class="transition-all duration-300" />
+
+            <!-- Eyes (Blinking Group) -->
+            <g id="eyesGroup">
+              <ellipse id="leftEye" cx="80" cy="82" rx="6" ry="6" fill="#1e1b4b" />
+              <circle cx="82" cy="80" r="2" fill="#ffffff" />
+              <ellipse id="rightEye" cx="120" cy="82" rx="6" ry="6" fill="#1e1b4b" />
+              <circle cx="122" cy="80" r="2" fill="#ffffff" />
+            </g>
+
+            <!-- Eyeglasses for Professor Persona -->
+            <rect x="68" y="73" width="24" height="18" rx="6" stroke="#0ea5e9" stroke-width="2.5" fill="none" stroke-opacity="0.85" />
+            <rect x="108" y="73" width="24" height="18" rx="6" stroke="#0ea5e9" stroke-width="2.5" fill="none" stroke-opacity="0.85" />
+            <path d="M92 80 L108 80" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round" />
+
+            <!-- Mouth (Lip-sync dynamic path) -->
+            <path id="avatarMouth" d="M88 110 Q100 118 112 110" stroke="#881337" stroke-width="3.5" stroke-linecap="round" fill="none" class="transition-all duration-150" />
+          </svg>
+        </div>
+
+        <!-- Expressive Soundwave Visualizer Bars -->
+        <div id="soundWave" class="flex items-center gap-1.5 h-6 my-1 opacity-40 transition-opacity duration-300">
+          <div class="wave-bar h-2 w-1 bg-indigo-400 rounded-full"></div>
+          <div class="wave-bar h-4 w-1 bg-purple-400 rounded-full"></div>
+          <div class="wave-bar h-5 w-1 bg-pink-400 rounded-full"></div>
+          <div class="wave-bar h-3 w-1 bg-amber-400 rounded-full"></div>
+          <div class="wave-bar h-5 w-1 bg-emerald-400 rounded-full"></div>
+          <div class="wave-bar h-2 w-1 bg-indigo-400 rounded-full"></div>
+        </div>
+
+        <!-- Hidden Audio Player for Sarvam Bulbul TTS -->
+        <audio id="tutorAudio" class="hidden"></audio>
+
+        <!-- Current Spoken Transcript Caption Box -->
+        <div class="w-full bg-[#141e33] border border-[#223150] rounded-2xl p-3 mt-1.5 text-center">
+          <p id="tutorSpokenBubble" class="text-xs text-indigo-100 font-medium leading-relaxed italic">
+            "Namaste! I am your Sarvam AI Tutor. Click the microphone below or ask any question to start our interactive session!"
+          </p>
+        </div>
+      </div>
+
+      <!-- TOPIC CHIPS & QUICK STARTERS -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
+        <span class="text-slate-400 font-semibold uppercase tracking-wider text-[10px] whitespace-nowrap">Topics:</span>
+        <button class="topic-chip active px-3 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-500/50 text-indigo-200 hover:bg-indigo-600/50 transition whitespace-nowrap" data-topic="Photosynthesis">🌱 Photosynthesis</button>
+        <button class="topic-chip px-3 py-1.5 rounded-xl bg-[#131c30] border border-[#202d49] text-slate-300 hover:border-indigo-500/40 transition whitespace-nowrap" data-topic="Quantum Computing">⚛️ Quantum Computing</button>
+        <button class="topic-chip px-3 py-1.5 rounded-xl bg-[#131c30] border border-[#202d49] text-slate-300 hover:border-indigo-500/40 transition whitespace-nowrap" data-topic="Neural Networks">🧠 Neural Networks</button>
+        <button class="topic-chip px-3 py-1.5 rounded-xl bg-[#131c30] border border-[#202d49] text-slate-300 hover:border-indigo-500/40 transition whitespace-nowrap" data-topic="Calculus: Derivatives">📐 Derivatives</button>
+      </div>
+
+      <!-- CHAT & ADAPTIVE SESSIONS -->
+      <div class="bg-[#101728]/90 border border-[#1d2a45] rounded-3xl p-4 flex-1 flex flex-col justify-between shadow-xl min-h-[340px] backdrop-blur-xl">
+        
+        <!-- Conversation Feed -->
+        <div id="chatFeed" class="flex-1 overflow-y-auto space-y-3 pr-2 max-h-[290px]">
+          <!-- Welcome Message -->
+          <div class="flex items-start gap-2.5">
+            <div class="w-7 h-7 rounded-xl bg-indigo-600 flex items-center justify-center text-xs shrink-0 font-bold shadow-md shadow-indigo-600/30">G</div>
+            <div class="bg-[#152036] border border-[#233354] rounded-2xl rounded-tl-sm p-3 text-xs text-slate-200 leading-relaxed max-w-[88%] shadow-sm">
+              Welcome! You can speak using the microphone button or type below. I will explain concepts visually on the whiteboard and test your mastery.
+            </div>
+          </div>
+        </div>
+
+        <!-- Adaptive Question Checkpoint Card -->
+        <div id="adaptiveCard" class="hidden mt-3 p-3.5 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/30 rounded-2xl">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-xs">⚡</span>
+            <span class="text-[11px] uppercase font-bold tracking-wider text-amber-400">Comprehension Checkpoint</span>
+          </div>
+          <p id="adaptiveQuestionText" class="text-xs font-semibold text-slate-100 mb-2.5"></p>
+          <div id="adaptiveOptions" class="grid grid-cols-1 gap-1.5"></div>
+          <div id="adaptiveFeedback" class="hidden text-xs mt-2 font-medium"></div>
+        </div>
+
+        <!-- Voice Recording Banner (Shown while recording mic) -->
+        <div id="voiceRecordingBanner" class="hidden mt-2 p-2.5 bg-red-500/15 border border-red-500/40 rounded-xl flex items-center justify-between animate-pulse">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+            <span id="recordingStatusText" class="text-xs font-semibold text-red-300">Listening to your voice...</span>
+          </div>
+          <span id="recordingTimer" class="text-xs font-mono font-bold text-red-400">00:00</span>
+        </div>
+
+        <!-- Chat Input Form -->
+        <form id="chatForm" class="mt-3 pt-3 border-t border-[#1d2a45] flex items-center gap-2">
+          
+          <!-- VOICE INPUT BUTTON (Sarvam Saaras STT + MediaRecorder) -->
+          <button type="button" id="micBtn" class="w-11 h-11 rounded-2xl bg-[#141f35] hover:bg-red-500/20 border border-[#223252] hover:border-red-500/50 text-slate-200 hover:text-red-400 flex items-center justify-center transition shrink-0 relative active:scale-95 shadow-md" title="Click to speak (Sarvam Saaras STT)">
+            <span id="micIcon" class="text-lg">🎙️</span>
+            <span id="micPulse" class="hidden absolute inset-0 rounded-2xl bg-red-500/30 animate-ping"></span>
+          </button>
+
+          <!-- Text Field -->
+          <input type="text" id="userInput" placeholder="Ask a question or explain what you understand..." class="flex-1 bg-[#131c30] border border-[#202d49] rounded-2xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition shadow-inner">
+
+          <!-- Submit Button -->
+          <button type="submit" id="sendBtn" class="w-11 h-11 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition shadow-lg shadow-indigo-600/30 shrink-0 font-bold active:scale-95">
+            ➔
+          </button>
+        </form>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: Visual Interactive Whiteboard (7 cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+
+      <!-- WHITEBOARD CONTAINER (Stitch Layout) -->
+      <div class="bg-[#101728]/90 border border-[#1d2a45] rounded-3xl p-5 shadow-2xl flex-1 flex flex-col relative overflow-hidden min-h-[580px] backdrop-blur-xl">
+        
+        <!-- Whiteboard Header & Controls -->
+        <div class="flex items-center justify-between border-b border-[#1d2a45] pb-3 mb-4 flex-wrap gap-2">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-base shadow-sm">
+              📋
+            </div>
+            <div>
+              <h2 id="whiteboardTitle" class="text-sm font-bold text-slate-100">Live Visual Whiteboard</h2>
+              <p class="text-[11px] text-slate-400">Synchronized Mermaid diagrams & KaTeX equations</p>
+            </div>
+          </div>
+
+          <!-- Tab View Controls -->
+          <div class="flex items-center gap-1.5 bg-[#131c30] border border-[#202d49] p-1 rounded-xl text-xs">
+            <button id="viewDiagramBtn" class="view-tab active px-3 py-1.5 rounded-lg text-indigo-300 font-semibold bg-indigo-600/30">📊 Diagram</button>
+            <button id="viewFormulaBtn" class="view-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200">📐 Math / Formula</button>
+            <button id="viewStepsBtn" class="view-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200">📝 Notes</button>
+          </div>
+        </div>
+
+        <!-- MAIN WHITEBOARD CANVAS -->
+        <div id="whiteboardCanvas" class="flex-1 bg-[#090d16] border border-[#19243c] rounded-2xl p-6 flex flex-col items-center justify-center overflow-auto relative min-h-[440px] shadow-inner">
+          
+          <!-- Diagram Layer (Mermaid) -->
+          <div id="diagramLayer" class="w-full flex items-center justify-center text-center">
+            <div id="mermaidTarget" class="w-full flex items-center justify-center">
+              <div class="mermaid text-center">
+                flowchart TD
+                  A[🌱 Sunlight & H2O] --> B[🍃 Chloroplast]
+                  B --> C[⚡ Light Reaction]
+                  C --> D[🍬 Glucose + Oxygen]
+                  style B fill:#1e1b4b,stroke:#6366f1,stroke-width:2px,color:#fff
+                  style D fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff
+              </div>
+            </div>
+          </div>
+
+          <!-- Math / LaTeX Formula Layer -->
+          <div id="formulaLayer" class="hidden w-full flex flex-col items-center justify-center text-center p-8 space-y-4">
+            <span class="text-xs uppercase tracking-wider text-indigo-400 font-bold">Core Formulation</span>
+            <div id="katexTarget" class="text-xl md:text-2xl text-emerald-300 font-mono bg-[#11192d] border border-[#1e2c49] px-6 py-4 rounded-2xl shadow-inner">
+              6CO_2 + 6H_2O + \text{light} \longrightarrow C_6H_{12}O_6 + 6O_2
+            </div>
+            <p id="formulaExplanation" class="text-xs text-slate-400 max-w-md leading-relaxed">
+              Carbon dioxide and water, energized by solar photons, are converted into glucose and oxygen.
+            </p>
+          </div>
+
+          <!-- Step-by-step Notes Layer -->
+          <div id="stepsLayer" class="hidden w-full p-4 space-y-3">
+            <div class="bg-[#121b2f] border border-[#1f2e4d] rounded-xl p-3.5">
+              <span class="text-xs font-bold text-amber-400">Step 1: Light Capture</span>
+              <p class="text-xs text-slate-300 mt-1">Chlorophyll molecules absorb red and blue wavelengths while reflecting green light.</p>
+            </div>
+            <div class="bg-[#121b2f] border border-[#1f2e4d] rounded-xl p-3.5">
+              <span class="text-xs font-bold text-emerald-400">Step 2: Water Photolysis</span>
+              <p class="text-xs text-slate-300 mt-1">Water molecules split into electrons, protons, and diatomic oxygen gas.</p>
+            </div>
+            <div class="bg-[#121b2f] border border-[#1f2e4d] rounded-xl p-3.5">
+              <span class="text-xs font-bold text-indigo-400">Step 3: Calvin Cycle</span>
+              <p class="text-xs text-slate-300 mt-1">ATP and NADPH power the fixation of atmospheric carbon into storable sugars.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Whiteboard Footer Info -->
+        <div class="mt-4 flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-[#1d2a45]">
+          <div class="flex items-center gap-4">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-400"></span> Mermaid Flowchart</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> KaTeX Math</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="resetWhiteboardBtn" class="hover:text-slate-200 transition px-2.5 py-1 rounded-lg bg-[#131c30] border border-[#202d49]">↻ Reset Board</button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
